@@ -178,6 +178,9 @@ func applyEvent(ctx context.Context, tx pgx.Tx, ev any) error {
 			UPDATE reporters SET active = false, updated_ledger = $2, updated_at = $3
 			WHERE address = $1`,
 			e.Reporter, int64(e.Ledger), e.ClosedAt)
+	case soroban.ThresholdsUpdated:
+		// ThresholdsUpdated is acknowledged idempotently; no-op if no schema table yet
+		return nil
 	}
 	if err != nil {
 		return fmt.Errorf("apply %T: %w", ev, err)
@@ -199,6 +202,34 @@ func scanAsset(row pgx.Row) (coverage.Asset, error) {
 
 func (s *Store) ListAssets(ctx context.Context) ([]coverage.Asset, error) {
 	rows, err := s.pool.Query(ctx, `SELECT `+assetCols+` FROM assets ORDER BY code, issuer`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []coverage.Asset
+	for rows.Next() {
+		a, err := scanAsset(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) SearchAssets(ctx context.Context, q string) ([]coverage.Asset, error) {
+	pattern := "%" + q + "%"
+	rows, err := s.pool.Query(ctx, `
+		SELECT `+assetCols+`
+		FROM assets
+		WHERE code ILIKE $1
+		   OR issuer ILIKE $1
+		   OR (toml IS NOT NULL AND (
+		        toml->'currency'->>'name' ILIKE $1
+		        OR toml->>'org_name' ILIKE $1
+		   ))
+		ORDER BY code, issuer
+		LIMIT 20`, pattern)
 	if err != nil {
 		return nil, err
 	}

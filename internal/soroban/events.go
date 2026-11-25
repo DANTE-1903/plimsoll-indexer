@@ -11,11 +11,13 @@ import (
 
 // Event names emitted by the Plimsoll contracts (snake_case struct names).
 const (
-	EventAssetListed     = "asset_listed"
-	EventSupplyPosted    = "supply_posted"
-	EventReservePosted   = "reserve_posted"
-	EventReporterSet     = "reporter_set"
-	EventReporterRevoked = "reporter_revoked"
+	EventAssetListed        = "asset_listed"
+	EventSupplyPosted       = "supply_posted"
+	EventReservePosted      = "reserve_posted"
+	EventReporterSet        = "reporter_set"
+	EventReporterRevoked    = "reporter_revoked"
+	EventThresholdsUpdated  = "ThresholdsUpdated"
+	EventThresholdsUpdated_ = "thresholds_updated"
 )
 
 // Meta is common to every event.
@@ -69,6 +71,10 @@ type ReporterSet struct {
 type ReporterRevoked struct {
 	Meta
 	Reporter string
+}
+
+type ThresholdsUpdated struct {
+	Meta
 }
 
 // Decode turns an RPC event into one of the typed events above. Events this
@@ -136,6 +142,8 @@ func Decode(e protocol.EventInfo) (any, error) {
 	case EventReporterRevoked:
 		out := ReporterRevoked{Meta: meta, Reporter: d.topicAddr(1)}
 		return out, d.wrap(e.ID, name)
+	case EventThresholdsUpdated, EventThresholdsUpdated_:
+		return ThresholdsUpdated{Meta: meta}, d.wrap(e.ID, name)
 	default:
 		return nil, nil
 	}
