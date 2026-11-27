@@ -23,7 +23,7 @@ internal/horizon/       supply breakdown from /assets; canonical JSON + sha256
 internal/stellartoml/   SEP-1 fetch and parse
 internal/soroban/       ScVal helpers, event decoder, simulate→sign→send invoker
 internal/coverage/      data model + the contract's selection and bps rules
-internal/store/         migrations/NNNN_*.sql (applied once each, in order) + queries
+internal/store/         migrations/NNNN_*.sql (applied once each, in order) + queries; raw_events + replay
 internal/worker/        ingest.go, poster.go, toml.go
 internal/api/           HTTP handlers (Go 1.22 mux patterns)
 ```
@@ -36,6 +36,7 @@ internal/api/           HTTP handlers (Go 1.22 mux patterns)
 | `supply_posted` | sym, sac | amount i128, ledger u32, breakdown_hash bytes, poster |
 | `reserve_posted` | sym, sac, tier u32 | amount i128, as_of u64, reporter, doc_hash bytes, doc_uri string |
 | `reporter_set` | sym, reporter | role u32, name string |
+| `reporter_metadata_updated` | sym, reporter | name symbol?, website_uri string?, contact_hash bytes? |
 | `reporter_revoked` | sym, reporter | — |
 
 ## Rules that matter
