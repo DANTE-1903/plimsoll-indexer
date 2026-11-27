@@ -511,6 +511,8 @@ func withAttestation(raw []byte, att store.Attestation, found bool) (json.RawMes
 	if found {
 		hash, _ := json.Marshal(att.Hash)
 		obj["attestation_hash"] = hash
+		firstSeen, _ := json.Marshal(att.FirstSeenAt.UTC().Format(time.RFC3339))
+		obj["attestation_first_seen_at"] = firstSeen
 		if att.ChangedAt != nil {
 			changed, _ := json.Marshal(att.ChangedAt.UTC().Format(time.RFC3339))
 			obj["attestation_changed_at"] = changed

@@ -255,7 +255,11 @@ func newFake() *fake {
 			},
 		},
 		attestation: map[string]store.Attestation{
-			sac: {Hash: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", ChangedAt: &now},
+			sac: {
+				Hash:        "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+				FirstSeenAt: now.Add(-48 * time.Hour),
+				ChangedAt:   &now,
+			},
 		},
 	}
 	return f
@@ -332,6 +336,7 @@ func TestGetAssetCoverage(t *testing.T) {
 	}
 	toml := body["toml"].(map[string]any)
 	if toml["attestation_hash"] != "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" ||
+		toml["attestation_first_seen_at"] != now.Add(-48*time.Hour).Format(time.RFC3339) ||
 		toml["attestation_changed_at"] != now.Format(time.RFC3339) {
 		t.Errorf("toml attestation = %+v", toml)
 	}
